@@ -161,4 +161,25 @@ class PdfToImagesFullTest {
         assertThatCode(() -> PdfToImages.main(new String[]{}))
                 .doesNotThrowAnyException();
     }
+
+    @Test
+    void main_rendersSyntheticPdfIntoItsOwnDirectory() throws Exception {
+        File pdf = PdfTestHelper.createMinimalPdf(tempDir.toFile());
+
+        PdfToImages.main(new String[] {pdf.getAbsolutePath(), "1.0"});
+
+        File image = new File(tempDir.toFile(), "test/test-1.jpg");
+        assertThat(image).exists().isNotEmpty();
+
+        PdfToImages.tranfer1(pdf.getAbsolutePath(), 1.0f);
+        PdfToImages.tranfer(pdf.getAbsolutePath(), 1.0f);
+        assertThat(new File(tempDir.toFile(), "test/test-1-small.jpg")).exists().isNotEmpty();
+    }
+
+    @Test
+    void main_reportsInvalidPdf() {
+        assertThatThrownBy(() -> PdfToImages.main(new String[] {
+                new File(tempDir.toFile(), "missing.pdf").getAbsolutePath(), "1.0"}))
+                .isInstanceOf(IllegalStateException.class);
+    }
 }

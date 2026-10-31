@@ -38,15 +38,6 @@ public class Padding {
 			(byte) 0xD, (byte) 0x3C, (byte) 0x5B, (byte) 0x59, (byte) 0x66 };
 	*/
 	private static byte[] padding3={};
-	static {
-		// add offset
-		for (int i = 0; i < padding1.length; i++) {
-			padding1[i] += (byte) 0x13;
-		}
-		for (int i = 0; i < padding3.length; i++) {
-			padding3[i] += (byte) 0x13;
-		}
-	}
  
 	public static final void getPadding(final Graphics2D g2,
 			final Rectangle2D.Float mediaBox) {

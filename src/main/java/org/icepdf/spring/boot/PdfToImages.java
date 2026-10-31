@@ -49,20 +49,16 @@ public class PdfToImages {
 	 */
 
 	public static void main(String[] args) {
+		if (args.length != 2) {
+			return;
+		}
 		try {
-			tranfer("F:\\taomingke工作区\\2014-07\\时尚云平台简介.pdf", 1);
-		} catch (PDFException e) {
-// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PDFSecurityException e) {
-// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-// TODO Auto-generated catch block
-			e.printStackTrace();
+			tranfer(args[0], Float.parseFloat(args[1]));
+		} catch (PDFException | PDFSecurityException | IOException e) {
+			throw new IllegalStateException("PDF conversion failed", e);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			e.printStackTrace();
+			throw new IllegalStateException("PDF conversion interrupted", e);
 		}
 	}
 
@@ -151,8 +147,10 @@ public class PdfToImages {
 		String folder = "";
 		index++;
 		if (filepath != null && !filepath.equals("")) {
-			folder = filepath.substring(filepath.lastIndexOf("\\") + 1, filepath.lastIndexOf("."));
-			jpgFilename = filepath.substring(0, filepath.lastIndexOf(".")) + "\\" + folder + "-" + index + "."
+			int separatorPosition = Math.max(filepath.lastIndexOf("\\"), filepath.lastIndexOf("/"));
+			folder = filepath.substring(separatorPosition + 1, filepath.lastIndexOf("."));
+			String separator = filepath.indexOf("\\") >= 0 && filepath.indexOf("/") < 0 ? "\\" : File.separator;
+			jpgFilename = filepath.substring(0, filepath.lastIndexOf(".")) + separator + folder + "-" + index + "."
 					+ FILETYPE_JPG;
 		}
 		return jpgFilename;

@@ -15,7 +15,9 @@
  */
 package org.icepdf.spring.boot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -44,5 +46,24 @@ class Pdf2ImgUtilTest {
     void main_withInvalidPath_handlesGracefully() {
         assertThatCode(() -> Pdf2ImgUtil.main(new String[]{"invalid"}))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    void main_convertsEveryPageOfSyntheticPdf() throws Exception {
+        File pdf = PdfTestHelper.createMultiPagePdf(tempDir.toFile(), 2);
+        File output = new File(tempDir.toFile(), "images");
+        assertThat(output.mkdir()).isTrue();
+
+        Pdf2ImgUtil.main(new String[] {pdf.getAbsolutePath(), output.getAbsolutePath()});
+
+        assertThat(new File(output, "icepdf_0.png")).exists().isNotEmpty();
+        assertThat(new File(output, "icepdf_1.png")).exists().isNotEmpty();
+    }
+
+    @Test
+    void main_reportsInvalidPdfInsteadOfClaimingSuccess() {
+        assertThatThrownBy(() -> Pdf2ImgUtil.main(new String[] {
+                new File(tempDir.toFile(), "missing.pdf").getAbsolutePath(), tempDir.toString()}))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

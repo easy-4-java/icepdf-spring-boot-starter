@@ -19,13 +19,7 @@ public class MyDocument extends Document {
             Field watermarkField = clazzA.getDeclaredField("watermarkCallback");
             watermarkField.setAccessible(true);
             watermarkField.set(this, null);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (ReflectiveOperationException | SecurityException | IllegalArgumentException e) {
             e.printStackTrace();
         }
     }

@@ -17,9 +17,11 @@ package org.icepdf.spring.boot;
 
 
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.IOException;
 import javax.imageio.ImageIO;
+import org.icepdf.core.exceptions.PDFException;
+import org.icepdf.core.exceptions.PDFSecurityException;
 import org.icepdf.core.pobjects.Document;
 import org.icepdf.core.pobjects.Page;
 import org.icepdf.core.util.GraphicsRenderingHints;
@@ -36,29 +38,38 @@ public class Pdf2ImgUtil {
 	 * @param args the args
 	 * @return the static void
 	 */
-	public static void main(String[] args){
-		String filePath="G:/BaiduYunDownload/ce.pdf";
-		Document document=new Document();
-		try{
+	public static void main(String[] args) {
+		if (args.length != 2) {
+			return;
+		}
+		try {
+			convert(args[0], new File(args[1]));
+		} catch (IOException | PDFException | PDFSecurityException e) {
+			throw new IllegalStateException("PDF conversion failed", e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("PDF conversion interrupted", e);
+		}
+	}
+
+	public static void convert(String filePath, File outputDirectory)
+			throws IOException, PDFException, PDFSecurityException, InterruptedException {
+		Document document = new Document();
+		try {
 			document.setFile(filePath);
-			float scale=1.0f; //缩放比例
-			float rotation=0f; //旋转角度  
-			for(int i=0;i<document.getNumberOfPages();i++){
-				BufferedImage image=(BufferedImage)document.getPageImage(i,
-						GraphicsRenderingHints.SCREEN,Page.BOUNDARY_CROPBOX,
-						rotation,scale);
-				RenderedImage rendImage=image;
-				File file=new File("G:/BaiduYunDownload/icepdf_"+i+".jpg");
-				// 这里png作用是：格式是jpg但有png清晰度  
-				ImageIO.write(rendImage,"png",file);
-				image.flush();  
-           }
+			for (int i = 0; i < document.getNumberOfPages(); i++) {
+				BufferedImage image = (BufferedImage) document.getPageImage(i,
+						GraphicsRenderingHints.SCREEN, Page.BOUNDARY_CROPBOX, 0f, 1.0f);
+				try {
+					if (!ImageIO.write(image, "png", new File(outputDirectory, "icepdf_" + i + ".png"))) {
+						throw new IOException("PNG writer unavailable");
+					}
+				} finally {
+					image.flush();
+				}
+			}
+		} finally {
 			document.dispose();
 		}
-		catch(Exception e){
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-		}
-		System.out.println("======================完成============================");
 	}
 }

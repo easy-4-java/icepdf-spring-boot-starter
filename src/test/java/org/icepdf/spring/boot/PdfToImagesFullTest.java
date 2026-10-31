@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -171,9 +172,21 @@ class PdfToImagesFullTest {
         File image = new File(tempDir.toFile(), "test/test-1.jpg");
         assertThat(image).exists().isNotEmpty();
 
+        File small = new File(tempDir.toFile(), "test/test-1-small.jpg");
+        Files.delete(image.toPath());
+        Files.delete(small.toPath());
+        assertThat(image).doesNotExist();
+        assertThat(small).doesNotExist();
         PdfToImages.tranfer1(pdf.getAbsolutePath(), 1.0f);
+        assertThat(image).exists().isNotEmpty();
+        assertThat(small).exists().isNotEmpty();
+        Files.delete(image.toPath());
+        Files.delete(small.toPath());
+        assertThat(image).doesNotExist();
+        assertThat(small).doesNotExist();
         PdfToImages.tranfer(pdf.getAbsolutePath(), 1.0f);
-        assertThat(new File(tempDir.toFile(), "test/test-1-small.jpg")).exists().isNotEmpty();
+        assertThat(image).exists().isNotEmpty();
+        assertThat(small).exists().isNotEmpty();
     }
 
     @Test

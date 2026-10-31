@@ -73,6 +73,18 @@ final class PdfTestHelper {
         return pdfFile;
     }
 
+    static File createPdfWithDistinctCropAndTrimBoxes(File dir) throws IOException {
+        File pdfFile = new File(dir, "distinct-boxes.pdf");
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage(new PDRectangle(400, 400));
+            page.setCropBox(new PDRectangle(0, 0, 400, 400));
+            page.setTrimBox(new PDRectangle(50, 60, 200, 100));
+            doc.addPage(page);
+            doc.save(pdfFile);
+        }
+        return pdfFile;
+    }
+
     /**
      * Creates a minimal PNG image file for testing.
      */

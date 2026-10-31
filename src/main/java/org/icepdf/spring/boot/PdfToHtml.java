@@ -3,6 +3,7 @@ package org.icepdf.spring.boot;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +15,8 @@ import javax.imageio.ImageIO;
 import org.icepdf.core.exceptions.PDFException;
 import org.icepdf.core.exceptions.PDFSecurityException;
 import org.icepdf.core.pobjects.Document;
+import org.icepdf.core.pobjects.MyDocument;
+import org.icepdf.core.pobjects.Page;
 import org.icepdf.core.util.GraphicsRenderingHints;
 
 /**\n * Converter for transforming PDF documents to HTML format.\n *\n * @author <a href="https://github.com/loong10k">Loong Wan</a>\n * @since 1.0.0\n */
@@ -30,12 +33,6 @@ public class PdfToHtml {
 	 */
 
 	public static void pdf2Pic(String pdfPath, String path) throws IOException, PDFException, PDFSecurityException, InterruptedException {
-		render(pdfPath, path);
-	}
-
-	private static List<String> render(String pdfPath, String path)
-			throws IOException, PDFException, PDFSecurityException, InterruptedException {
-		List<String> images = new ArrayList<>();
 		Document document = new Document();
 		try {
 			document.setFile(pdfPath);
@@ -54,7 +51,6 @@ public class PdfToHtml {
 				if (!ImageIO.write(rendImage, "png", file)) {
 					throw new IOException("PNG writer unavailable");
 				}
-				images.add(imgName);
 			} finally {
 				image.flush();
 			}
@@ -62,7 +58,6 @@ public class PdfToHtml {
 		} finally {
 			document.dispose();
 		}
-		return images;
 	}
 	/**
 	 * <p>Main.</p>
@@ -75,12 +70,33 @@ public class PdfToHtml {
 			throw new IllegalArgumentException("Usage: PdfToHtml <pdf-file> <output-directory>");
 		}
 		try {
-			List<String> images = render(arguments[0], arguments[1]);
+			List<String> images = new ArrayList<>();
+			Document document = new MyDocument();
+			try {
+				try (FileInputStream input = new FileInputStream(arguments[0])) {
+					document.setInputStream(input, "");
+					for (int i = 0; i < document.getNumberOfPages(); i++) {
+						BufferedImage image = (BufferedImage) document.getPageImage(i,
+								GraphicsRenderingHints.PRINT, Page.BOUNDARY_TRIMBOX, 0f, 3.5f);
+						String imageName = "c_" + i + ".jpg";
+						try {
+							if (!ImageIO.write(image, "jpg", new File(arguments[1], imageName))) {
+								throw new IOException("JPEG writer unavailable");
+							}
+							images.add(imageName);
+						} finally {
+							image.flush();
+						}
+					}
+				}
+			} finally {
+				document.dispose();
+			}
 			if (!images.isEmpty()) {
-				Files.writeString(new File(arguments[1], "index.html").toPath(),
+				Files.writeString(new File(arguments[1], "c.html").toPath(),
 						HtmlHelper.getHtml(images), StandardCharsets.UTF_8);
 			}
-		} catch (IOException | PDFException | PDFSecurityException e) {
+		} catch (IOException | PDFSecurityException e) {
 			throw new IllegalStateException("PDF conversion failed", e);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

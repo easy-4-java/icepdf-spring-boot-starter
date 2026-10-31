@@ -17,6 +17,10 @@ package org.icepdf.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -79,5 +83,19 @@ class ProductInfoTest {
         assertThat(ProductInfo.RELEASE_TYPE).isEmpty();
         assertThat(ProductInfo.BUILD_NO).isEqualTo("19");
         assertThat(ProductInfo.REVISION).isEqualTo("49267");
+    }
+
+    @Test
+    void main_printsProductAndVersion() throws Exception {
+        PrintStream original = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (PrintStream capture = new PrintStream(output, true, StandardCharsets.UTF_8)) {
+            System.setOut(capture);
+            ProductInfo.main(new String[0]);
+        } finally {
+            System.setOut(original);
+        }
+        assertThat(output.toString(StandardCharsets.UTF_8))
+                .contains("ICEpdf", "6.3.2");
     }
 }

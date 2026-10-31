@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -160,5 +161,38 @@ class PdfToImagesFullTest {
     void main_withNoArgs_handlesGracefully() {
         assertThatCode(() -> PdfToImages.main(new String[]{}))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    void main_rendersSyntheticPdfIntoItsOwnDirectory() throws Exception {
+        File pdf = PdfTestHelper.createMinimalPdf(tempDir.toFile());
+
+        PdfToImages.main(new String[] {pdf.getAbsolutePath(), "1.0"});
+
+        File image = new File(tempDir.toFile(), "test/test-1.jpg");
+        assertThat(image).exists().isNotEmpty();
+
+        File small = new File(tempDir.toFile(), "test/test-1-small.jpg");
+        Files.delete(image.toPath());
+        Files.delete(small.toPath());
+        assertThat(image).doesNotExist();
+        assertThat(small).doesNotExist();
+        PdfToImages.tranfer1(pdf.getAbsolutePath(), 1.0f);
+        assertThat(image).exists().isNotEmpty();
+        assertThat(small).exists().isNotEmpty();
+        Files.delete(image.toPath());
+        Files.delete(small.toPath());
+        assertThat(image).doesNotExist();
+        assertThat(small).doesNotExist();
+        PdfToImages.tranfer(pdf.getAbsolutePath(), 1.0f);
+        assertThat(image).exists().isNotEmpty();
+        assertThat(small).exists().isNotEmpty();
+    }
+
+    @Test
+    void main_reportsInvalidPdf() {
+        assertThatThrownBy(() -> PdfToImages.main(new String[] {
+                new File(tempDir.toFile(), "missing.pdf").getAbsolutePath(), "1.0"}))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

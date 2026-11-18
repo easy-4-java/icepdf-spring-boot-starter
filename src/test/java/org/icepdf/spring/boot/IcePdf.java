@@ -22,6 +22,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.icepdf.core.exceptions.PDFException;
+import org.icepdf.core.exceptions.PDFSecurityException;
 import org.icepdf.core.pobjects.Document;
 import org.icepdf.core.pobjects.Page;
 import org.icepdf.core.util.GraphicsRenderingHints;
@@ -40,7 +42,7 @@ public class IcePdf {
      * @param pngPath D://upFiles//bill//
      * @param imgName PT-011001900321-18675195
      */
-    public static void pdf2Pic(String pdfPath, String pngPath,String imgName) {
+    public static void pdf2Pic(String pdfPath, String pngPath,String imgName) throws IOException, PDFException, PDFSecurityException, InterruptedException {
       //  log.info("IcePdf pdfPath : {},  pngPath : {} ,  imgName : {} ", pdfPath,pngPath,imgName);
         Document document = new Document();
         document.setFile(pdfPath);
@@ -66,7 +68,7 @@ public class IcePdf {
        // log.info("======================pdf2Pic 完成============================");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, PDFException, PDFSecurityException, InterruptedException {
         String filePath = "D:\\upFiles\\bill\\PT-011001900321-18675195.pdf";
         pdf2Pic(filePath, "D:\\upFiles\\bill", "PT-011001900321-18675195");
 

@@ -162,29 +162,30 @@ public class PdfToImages {
 	 */
 	public static void tranferPer(Document document, float rotation, float zoom, String imagepath, int index)
 			throws PDFException, PDFSecurityException, IOException {
-		float scale = 1f;
-		Page page = document.getPageTree().getPage(index);
-		page.init();
-		PDimension sz = page.getSize(Page.BOUNDARY_CROPBOX, rotation, scale);
-
-		int pageWidth = (int) sz.getWidth();
-		int pageHeight = (int) sz.getHeight();
-
-		BufferedImage image = new BufferedImage(pageWidth, pageHeight, BufferedImage.TYPE_INT_RGB);
-		Graphics g = image.createGraphics();
-
-		page.paint(g, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, rotation, scale);
-		g.dispose();
-// capture the page image to file
-		try {
-			System.out.println("转换第 " + (index + 1) + " 页");
-			File file = new File(imagepath);
-			ImageIO.write(image, "jpg", file);
-
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
-		image.flush();
+        float scale = 1f;
+        try {
+            Page page = document.getPageTree().getPage(index);
+            page.init();
+            PDimension size = page.getSize(Page.BOUNDARY_CROPBOX, rotation, scale);
+            BufferedImage image = new BufferedImage((int) size.getWidth(), (int) size.getHeight(),
+                    BufferedImage.TYPE_INT_RGB);
+            try {
+                Graphics graphics = image.createGraphics();
+                try {
+                    page.paint(graphics, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, rotation, scale);
+                } finally {
+                    graphics.dispose();
+                }
+                if (!ImageIO.write(image, "jpg", new File(imagepath))) {
+                    throw new IOException("JPEG writer unavailable");
+                }
+            } finally {
+                image.flush();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("PDF rendering interrupted", e);
+        }
 
 		// 由缩略图生成指定宽高的jpg小图
 		String smallimagepath = imagepath.substring(0, imagepath.lastIndexOf(".")) + "-small" + ".jpg";
